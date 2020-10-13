@@ -49,7 +49,8 @@ async function fn() {
         CREATE TABLE IF NOT EXISTS order_items(
             order_item_id SERIAL PRIMARY KEY,
             order_id INTEGER REFERENCES orders(order_id),
-            purchase_price INTEGER,
+            item_id INTEGER REFERENCES items(item_id),
+            purchase_price DECIMAL,
             quantity INTEGER
         );
     `;
