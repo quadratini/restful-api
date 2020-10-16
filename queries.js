@@ -1,47 +1,38 @@
 require('dotenv').config();
 const userDb = require('./userDb')();
+const jwt = require('jsonwebtoken');
+
 const { Pool, Client } = require('pg');
 let pool = new Pool();
 
-const login = async (req, res) => {
-    const { email, password,  } = req.body;
+const token = async(req, res) => {
+    const customer = req.customer;
+    console.log(customer);
+    res.json(customer);
+}
 
-    let query = `
-        SELECT * FROM customers
-        WHERE email='${email}'
-    `;
-    let q_res = await pool.query(query);
-    let customer;
-    if (q_res.rows && q_res.rows[0]) {
-        customer = {};
-        customer.customer_id = q_res.rows[0].customer_id;
-        customer.hashed_password = q_res.rows[0].hashed_password;
-        let correct_login = userDb.validatePassword(password, customer.hashed_password);
-
-        if (!correct_login) customer = null;
-    }
-
-
-
-
-    if (customer) {
-        // Generate an access token
-        const accessToken = jwt.sign({ customer: customer.customer_id }, accessTokenSecret);
-
-        res.json({
-            accessToken
-        });
+const login = async(req, res) => {
+    const { email, password } = req.body;
+    let q_res = await pool.query(`SELECT * FROM  customers WHERE email = $1`,
+        [email]);
+    let hashed_password = q_res.rows[0].hashed_password;
+    let customer_id = q_res.rows[0].customer_id;
+    let validateSuccess = await userDb.validatePassword(password, hashed_password);
+    if (validateSuccess) {
+        const token = jwt.sign({customer_id}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+        //localStorage.setItem('token', token);
+        res.status(201).send(token);
     } else {
-        res.send('Username or password incorrect');
+        res.status(201).send('Login ' + (validateSuccess ? 'success' : 'failure'));
     }
-    res.status(201).send()
 }
 
 const createCustomer = async (req, res) => {
-    const { email, phone_number, first_name, last_name } = req.body;
+    const { email, phone_number, first_name, last_name, password } = req.body;
+    const hashed_password = await userDb.hashPassword(password);
 
-    let q_res = await pool.query('INSERT INTO customers (email, phone_number, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING customer_id',
-        [email, phone_number, first_name, last_name]);
+    let q_res = await pool.query('INSERT INTO customers (email, hashed_password, phone_number, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING customer_id',
+        [email, hashed_password, phone_number, first_name, last_name]);
 
     res.status(201).send(`User added with ID: ${q_res.rows[0].customer_id}`);
 }
@@ -52,7 +43,6 @@ const updateCustomer = async (req, res) => {
 
     let q_res = await pool.query('UPDATE customers SET email = $1, phone_number = $2, first_name = $3, last_name = $4 WHERE customer_id = $5',
         [email, phone_number, first_name, last_name, id]);
-
 
     res.status(201).send(`User modified with ID: ${id}`);
 }
@@ -279,9 +269,9 @@ const getOrderItemsByOrderId = async (req, res) => {
 
 module.exports = (injectedPool) => {
     if (injectedPool) pool = injectedPool;
-
     return {
         login,
+        token,
 
         createCustomer,
         getCustomers,
@@ -309,5 +299,5 @@ module.exports = (injectedPool) => {
         getOrders,
         getOrderById,
         getOrderItemsByOrderId
-    };
+    }
 }

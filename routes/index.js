@@ -9,6 +9,7 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/login', db.login);
+router.post('/login', db.login);
+router.get('/token', auth.authenticateToken, db.token);
 
 module.exports = router;

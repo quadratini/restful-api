@@ -23,6 +23,7 @@ async function fn() {
         CREATE TABLE IF NOT EXISTS customers(
             customer_id SERIAL PRIMARY KEY,
             email VARCHAR(255) UNIQUE,
+            hashed_password VARCHAR(255),
             phone_number VARCHAR(20),
             first_name VARCHAR(50),
             last_name VARCHAR(50)

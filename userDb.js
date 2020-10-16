@@ -9,14 +9,8 @@ async function hashPassword(password, saltLength = 10) {
 }
 
 async function validatePassword(password, hash) {
-    bcrypt.compare(password, hash, (err, res) => {
-        if (err) {
-            console.error(err);
-        }
-        if (res) {
-            console.log(res);
-        }
-    });
+    const res = await bcrypt.compare(password, hash);
+    return res;
 }
 
 async function saveAccessToken(access_token, user_id) {

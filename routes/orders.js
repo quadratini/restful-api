@@ -9,4 +9,3 @@ router.get('/:id', db.getOrderById);
 router.get('/:id/items', db.getOrderItemsByOrderId);
 
 module.exports = router;
-
