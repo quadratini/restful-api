@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const userDb = require('../userDb')();
 const auth = require('../auth');
 const db = require('../queries')();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.status(200).json({ msg: 'hello' });
 });
 
-router.post('/login', db.login);
-router.get('/token', auth.authenticateToken, db.token);
+router.post('/login', [auth.notLoggedIn], db.login);
+router.post('/register', [auth.notLoggedIn], db.createCustomer);
+// TODO delete this
+router.get('/token', db.token);
 
 module.exports = router;

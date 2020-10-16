@@ -8,6 +8,7 @@ const indexRouter = require('./routes/index');
 const customersRouter = require('./routes/customers');
 const itemsRouter = require('./routes/items');
 const ordersRouter = require('./routes/orders');
+const auth = require('./auth');
 
 const app = express();
 
@@ -23,6 +24,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(auth.authenticateToken);
 
 app.use('/', indexRouter);
 app.use('/customers', customersRouter);

@@ -1,6 +1,4 @@
 const bcrypt = require("bcrypt");
-const { Pool, Client } = require('pg');
-let pool = new Pool();
 
 async function hashPassword(password, saltLength = 10) {
     const salt = await bcrypt.genSalt(saltLength);
@@ -12,7 +10,7 @@ async function validatePassword(password, hash) {
     const res = await bcrypt.compare(password, hash);
     return res;
 }
-
+/*
 async function saveAccessToken(access_token, user_id) {
     const query = `INSERT INTO access_tokens (access_token, user_id) VALUES ('${access_token}', ${user_id});`;
     await pool.query(query);
@@ -30,14 +28,13 @@ async function getCustomerIdFromBearerToken(bearer_token) {
         return customer_id;
     });
 }
+ */
 
-module.exports = (injectedPool) => {
-    if (injectedPool) pool = injectedPool;
-
-    return {
-        hashPassword,
-        validatePassword,
-        saveAccessToken,
-        getCustomerIdFromBearerToken
-    };
+module.exports = {
+    hashPassword,
+    validatePassword,
+    /*
+    saveAccessToken,
+    getCustomerIdFromBearerToken
+     */
 }

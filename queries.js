@@ -1,6 +1,6 @@
 require('dotenv').config();
-const userDb = require('./userDb')();
-const jwt = require('jsonwebtoken');
+const crypto = require('./crypto');
+const auth = require('./auth')
 
 const { Pool, Client } = require('pg');
 let pool = new Pool();
@@ -17,9 +17,10 @@ const login = async(req, res) => {
         [email]);
     let hashed_password = q_res.rows[0].hashed_password;
     let customer_id = q_res.rows[0].customer_id;
-    let validateSuccess = await userDb.validatePassword(password, hashed_password);
+    let role = q_res.rows[0].role;
+    let validateSuccess = await crypto.validatePassword(password, hashed_password);
     if (validateSuccess) {
-        const token = jwt.sign({customer_id}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+        const token = auth.createToken({customer_id, role});
         //localStorage.setItem('token', token);
         res.status(201).send(token);
     } else {
@@ -29,7 +30,7 @@ const login = async(req, res) => {
 
 const createCustomer = async (req, res) => {
     const { email, phone_number, first_name, last_name, password } = req.body;
-    const hashed_password = await userDb.hashPassword(password);
+    const hashed_password = await crypto.hashPassword(password);
 
     let q_res = await pool.query('INSERT INTO customers (email, hashed_password, phone_number, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING customer_id',
         [email, hashed_password, phone_number, first_name, last_name]);

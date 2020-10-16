@@ -22,6 +22,7 @@ async function fn() {
     query = `
         CREATE TABLE IF NOT EXISTS customers(
             customer_id SERIAL PRIMARY KEY,
+            role INTEGER DEFAULT 0,
             email VARCHAR(255) UNIQUE,
             hashed_password VARCHAR(255),
             phone_number VARCHAR(20),
@@ -56,6 +57,7 @@ async function fn() {
         );
     `;
     await pool.query(query);
+    /*
     query = `
         CREATE TABLE IF NOT EXISTS access_tokens(
             access_token_id SERIAL PRIMARY KEY,
@@ -64,5 +66,6 @@ async function fn() {
         );
     `;
     await pool.query(query);
+     */
 
 }
