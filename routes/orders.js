@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const db = require('../queries');
+const db = require('../queries')();
 
 /* GET home page. */
 router.get('/', db.getOrders);

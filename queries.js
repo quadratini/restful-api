@@ -1,6 +1,41 @@
 require('dotenv').config();
+const userDb = require('./userDb')();
 const { Pool, Client } = require('pg');
-const pool = new Pool();
+let pool = new Pool();
+
+const login = async (req, res) => {
+    const { email, password,  } = req.body;
+
+    let query = `
+        SELECT * FROM customers
+        WHERE email='${email}'
+    `;
+    let q_res = await pool.query(query);
+    let customer;
+    if (q_res.rows && q_res.rows[0]) {
+        customer = {};
+        customer.customer_id = q_res.rows[0].customer_id;
+        customer.hashed_password = q_res.rows[0].hashed_password;
+        let correct_login = userDb.validatePassword(password, customer.hashed_password);
+
+        if (!correct_login) customer = null;
+    }
+
+
+
+
+    if (customer) {
+        // Generate an access token
+        const accessToken = jwt.sign({ customer: customer.customer_id }, accessTokenSecret);
+
+        res.json({
+            accessToken
+        });
+    } else {
+        res.send('Username or password incorrect');
+    }
+    res.status(201).send()
+}
 
 const createCustomer = async (req, res) => {
     const { email, phone_number, first_name, last_name } = req.body;
@@ -242,31 +277,37 @@ const getOrderItemsByOrderId = async (req, res) => {
     res.status(200).json(q_res.rows);
 };
 
-module.exports = {
-    createCustomer,
-    getCustomers,
-    getCustomerById,
-    updateCustomer,
-    deleteCustomer,
+module.exports = (injectedPool) => {
+    if (injectedPool) pool = injectedPool;
 
-    createItem,
-    getItems,
-    getItemById,
-    updateItem,
-    deleteItem,
+    return {
+        login,
 
-    createCustomerCartItem,
-    getCustomerCartItems,
-    updateCustomerCartItem,
-    deleteCustomerCartItem,
+        createCustomer,
+        getCustomers,
+        getCustomerById,
+        updateCustomer,
+        deleteCustomer,
 
-    deleteCustomerCart,
+        createItem,
+        getItems,
+        getItemById,
+        updateItem,
+        deleteItem,
 
-    getOrdersByCustomerId,
+        createCustomerCartItem,
+        getCustomerCartItems,
+        updateCustomerCartItem,
+        deleteCustomerCartItem,
 
-    createOrderFromCustomerCart,
+        deleteCustomerCart,
 
-    getOrders,
-    getOrderById,
-    getOrderItemsByOrderId
+        getOrdersByCustomerId,
+
+        createOrderFromCustomerCart,
+
+        getOrders,
+        getOrderById,
+        getOrderItemsByOrderId
+    };
 }

@@ -6,7 +6,7 @@ fn();
 
 async function fn() {
     let query = `
-        DROP TABLE IF EXISTS customers, items, cart_items, orders, order_items;
+        DROP TABLE IF EXISTS customers, items, cart_items, orders, order_items, access_tokens;
     `;
     await pool.query(query);
     query = `
@@ -55,4 +55,13 @@ async function fn() {
         );
     `;
     await pool.query(query);
+    query = `
+        CREATE TABLE IF NOT EXISTS access_tokens(
+            access_token_id SERIAL PRIMARY KEY,
+            access_token TEXT,
+            customer_id INTEGER REFERENCES customers(customer_id)
+        );
+    `;
+    await pool.query(query);
+
 }
