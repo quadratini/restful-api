@@ -16,6 +16,7 @@ function notLoggedIn(req, res, next) {
         res.status(403).json({'error': 'Already logged in'});
     }
 }
+
 function isLoggedIn(req, res, next) {
     if (req.customer) next();
     else {

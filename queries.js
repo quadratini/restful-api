@@ -15,17 +15,22 @@ const login = async(req, res) => {
     const { email, password } = req.body;
     let q_res = await pool.query(`SELECT * FROM  customers WHERE email = $1`,
         [email]);
-    let hashed_password = q_res.rows[0].hashed_password;
-    let customer_id = q_res.rows[0].customer_id;
-    let role = q_res.rows[0].role;
-    let validateSuccess = await crypto.validatePassword(password, hashed_password);
-    if (validateSuccess) {
-        const token = auth.createToken({customer_id, role});
-        //localStorage.setItem('token', token);
-        res.status(201).send(token);
+    if (typeof(q_res.rows[0]) != 'undefined') {
+        let hashed_password = q_res.rows[0].hashed_password;
+        let customer_id = q_res.rows[0].customer_id;
+        let role = q_res.rows[0].role;
+        let validateSuccess = await crypto.validatePassword(password, hashed_password);
+        if (validateSuccess) {
+            const token = auth.createToken({customer_id, role});
+            //localStorage.setItem('token', token);
+            res.status(200).send({token});
+        } else {
+            res.status(401).send('Login ' + (validateSuccess ? 'success' : 'failure'));
+        }
     } else {
-        res.status(201).send('Login ' + (validateSuccess ? 'success' : 'failure'));
+        res.status(401).send('Login ' + (false ? 'success' : 'failure'));
     }
+
 }
 
 const createCustomer = async (req, res) => {
@@ -35,7 +40,7 @@ const createCustomer = async (req, res) => {
     let q_res = await pool.query('INSERT INTO customers (email, hashed_password, phone_number, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING customer_id',
         [email, hashed_password, phone_number, first_name, last_name]);
 
-    res.status(201).send(`User added with ID: ${q_res.rows[0].customer_id}`);
+    res.status(200).send(`User added with ID: ${q_res.rows[0].customer_id}`);
 }
 
 const updateCustomer = async (req, res) => {
@@ -45,7 +50,7 @@ const updateCustomer = async (req, res) => {
     let q_res = await pool.query('UPDATE customers SET email = $1, phone_number = $2, first_name = $3, last_name = $4 WHERE customer_id = $5',
         [email, phone_number, first_name, last_name, id]);
 
-    res.status(201).send(`User modified with ID: ${id}`);
+    res.status(200).send(`User modified with ID: ${id}`);
 }
 
 const getCustomers = async (req, res) => {
@@ -72,7 +77,7 @@ const deleteCustomer = async (req, res) => {
     let q_res = await pool.query('DELETE FROM customers WHERE customer_id = $1',
         [id]);
 
-    res.status(201).send(`User deleted with ID: ${id}`);
+    res.status(200).send(`User deleted with ID: ${id}`);
 }
 
 
@@ -87,7 +92,7 @@ const createItem = async (req, res) => {
     let q_res = await pool.query(query,
         [name, unit_price, item_category, description]);
 
-    res.status(201).send(`Item added with ID: ${q_res.rows[0].item_id}`);
+    res.status(200).send(`Item added with ID: ${q_res.rows[0].item_id}`);
 }
 
 const updateItem = async (req, res) => {
@@ -100,7 +105,7 @@ const updateItem = async (req, res) => {
         [name, unit_price, item_category, description, id]);
 
 
-    res.status(201).send(`Item modified with ID: ${id}`);
+    res.status(200).send(`Item modified with ID: ${id}`);
 }
 
 const getItems = async (req, res) => {
@@ -128,7 +133,7 @@ const deleteItem = async (req, res) => {
     let q_res = await pool.query('DELETE FROM items WHERE item_id = $1',
         [id]);
 
-    res.status(201).send(`User deleted with ID: ${id}`);
+    res.status(200).send(`User deleted with ID: ${id}`);
 }
 
 const createCustomerCartItem = async (req, res, next) => {
@@ -144,7 +149,7 @@ const createCustomerCartItem = async (req, res, next) => {
         let q_res = await pool.query(query,
             [id, item_id, quantity]);
 
-        res.status(201).send(`Cart item added with ID: ${q_res.rows[0].cart_item_id}`);
+        res.status(200).send(`Cart item added with ID: ${q_res.rows[0].cart_item_id}`);
     } catch(err) {
         console.error(err);
         res.status(500).send(err);
@@ -168,7 +173,7 @@ const updateCustomerCartItem = async (req, res) => {
     let q_res = await pool.query('UPDATE cart_items SET quantity = $1 WHERE cart_item_id = $2',
         [quantity, cart_item_id]);
 
-    res.status(201).send(`Cart Item modified with ID: ${cart_item_id}`);
+    res.status(200).send(`Cart Item modified with ID: ${cart_item_id}`);
 }
 
 const deleteCustomerCartItem = async (req, res) => {
@@ -178,7 +183,7 @@ const deleteCustomerCartItem = async (req, res) => {
         let q_res = await pool.query('DELETE FROM cart_items WHERE cart_item_id = $1',
             [cart_item_id]);
 
-        res.status(201).send(`Cart Item deleted with ID: ${cart_item_id}`);
+        res.status(200).send(`Cart Item deleted with ID: ${cart_item_id}`);
     } catch(err) {
         console.error(err);
         res.status(500).send(err);
@@ -193,7 +198,7 @@ const deleteCustomerCart = async (req, res) => {
         let q_res = await pool.query('DELETE FROM cart_items WHERE customer_id = $1',
             [id]);
 
-        res.status(201).send(`Cart deleted with customer ID: ${q_res.rows.length}`);
+        res.status(200).send(`Cart deleted with customer ID: ${q_res.rows.length}`);
     } catch(err) {
         console.error(err);
         res.status(500).send(err);

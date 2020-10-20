@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const indexRouter = require('./routes/index');
@@ -10,8 +11,10 @@ const itemsRouter = require('./routes/items');
 const ordersRouter = require('./routes/orders');
 const auth = require('./auth');
 
+
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json())
 app.use(
     bodyParser.urlencoded({
